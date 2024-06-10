@@ -1,4 +1,8 @@
-import React, { useState } from "react";
+// src/components/ShoppingList.js
+
+// import useEffect
+
+import React, { useState, useEffect } from "react";
 import ItemForm from "./ItemForm";
 import Filter from "./Filter";
 import Item from "./Item";
@@ -7,30 +11,64 @@ function ShoppingList() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [items, setItems] = useState([]);
 
+  // ..Add useEffect hook;
+  //Update state by passing the array of items to SetItems
+  useEffect(() => {
+    fetch("http://localhost:4000/items")
+      .then((r) => r.json())
+      .then((items) => setItems(items));
+  }, []);
+  
+  function  handleUpdateItem   (updatedItem) {
+  const updatedItems = items.map((item) => {
+    if (item.id === updatedItem.id) {
+      return updatedItem;
+    } else {
+      return item;
+    }
+  });
+  setItems(updatedItems);
+}
+
+  //Create item; handleAddItem as a function to ShoppingList, pass a reference as a prop call onAddItem to the Itemform
+
+  function handleAddItem(newItem) {
+    setItems([...items, newItem]);
+  }
+  
   function handleCategoryChange(category) {
     setSelectedCategory(category);
   }
-
+  function handleDeleteItem(deletedItem) {
+    const updatedItems = items.filter((item) => item.id !== deletedItem.id);
+    setItems(updatedItems);
+  }
   const itemsToDisplay = items.filter((item) => {
     if (selectedCategory === "All") return true;
 
     return item.category === selectedCategory;
   });
-
+  
+  
   return (
     <div className="ShoppingList">
-      <ItemForm />
+      <ItemForm onAddItem={handleAddItem} />
       <Filter
         category={selectedCategory}
         onCategoryChange={handleCategoryChange}
       />
       <ul className="Items">
+        {/* pass it as a prop to Item */}
         {itemsToDisplay.map((item) => (
-          <Item key={item.id} item={item} />
+          <Item
+            key={item.id}
+            item={item}
+            onUpdateItem={handleUpdateItem}
+            onDeleteItem={handleDeleteItem}
+          />
         ))}
       </ul>
     </div>
   );
 }
-
 export default ShoppingList;
